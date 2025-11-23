@@ -3,15 +3,15 @@ import { Redis } from '@upstash/redis'
 import OpenAI from 'openai';
 
 const displayNameMap = {
-  frankdegods: 'Zhihao',
-  cupsey: 'Lingxi',
-  jalen: 'Haoran',
-  orangie: 'Xingyao',
-  alon: 'Yuchen',
-  baoskee: 'Yuchen',
-  zachxbt: 'Zeyan',
-  west: 'Xizhe',
-  assassin: 'Youling',
+  frankdegods: 'Frank',
+  cupsey: 'Cupsey',
+  jalen: 'Jalen',
+  orangie: 'Orangie',
+  alon: 'Alon',
+  baoskee: 'Baoskee',
+  zachxbt: 'ZachXBT',
+  west: 'West',
+  assassin: 'Assassin',
   truman: 'Truman'
 };
 
@@ -225,14 +225,11 @@ export default async function handler(request) {
                   suspicionLevel: 0,
                   personalityType: 'frankdegods',
                   thoughts: [],
-                  conversations: [],
                   memories: [],
+                  state: 'idle',
+                  stateTimer: 0,
                   momentumX: 0,
-                  momentumY: 0,
-                  currentMood: 'neutral',
-                  recentTopics: [],
-                  relationships: {},
-                  lastInteraction: {}
+                  momentumY: 0
               },
               {
                   id: 'cupsey',
@@ -243,14 +240,11 @@ export default async function handler(request) {
                   suspicionLevel: 0,
                   personalityType: 'cupsey',
                   thoughts: [],
-                  conversations: [],
                   memories: [],
+                  state: 'idle',
+                  stateTimer: 0,
                   momentumX: 0,
-                  momentumY: 0,
-                  currentMood: 'neutral',
-                  recentTopics: [],
-                  relationships: {},
-                  lastInteraction: {}
+                  momentumY: 0
               },
               {
                   id: 'jalen',
@@ -261,14 +255,11 @@ export default async function handler(request) {
                   suspicionLevel: 0,
                   personalityType: 'jalen',
                   thoughts: [],
-                  conversations: [],
                   memories: [],
+                  state: 'idle',
+                  stateTimer: 0,
                   momentumX: 0,
-                  momentumY: 0,
-                  currentMood: 'neutral',
-                  recentTopics: [],
-                  relationships: {},
-                  lastInteraction: {}
+                  momentumY: 0
               },
               {
                   id: 'orangie',
@@ -279,32 +270,26 @@ export default async function handler(request) {
                   suspicionLevel: 0,
                   personalityType: 'orangie',
                   thoughts: [],
-                  conversations: [],
                   memories: [],
+                  state: 'idle',
+                  stateTimer: 0,
                   momentumX: 0,
-                  momentumY: 0,
-                  currentMood: 'neutral',
-                  recentTopics: [],
-                  relationships: {},
-                  lastInteraction: {}
+                  momentumY: 0
               },
               {
-                  id: 'alon',
+                  id: 'baoskee',
                   x: 600,
                   y: 400,
                   type: 'AlonSprite',
                   isUnaware: true,
                   suspicionLevel: 0,
-                  personalityType: 'alon',
+                  personalityType: 'baoskee',
                   thoughts: [],
-                  conversations: [],
                   memories: [],
+                  state: 'idle',
+                  stateTimer: 0,
                   momentumX: 0,
-                  momentumY: 0,
-                  currentMood: 'neutral',
-                  recentTopics: [],
-                  relationships: {},
-                  lastInteraction: {}
+                  momentumY: 0
               },
               {
                   id: 'zachxbt',
@@ -315,32 +300,26 @@ export default async function handler(request) {
                   suspicionLevel: 0,
                   personalityType: 'zachxbt',
                   thoughts: [],
-                  conversations: [],
                   memories: [],
+                  state: 'idle',
+                  stateTimer: 0,
                   momentumX: 0,
-                  momentumY: 0,
-                  currentMood: 'neutral',
-                  recentTopics: [],
-                  relationships: {},
-                  lastInteraction: {}
+                  momentumY: 0
               },
               {
                   id: 'west',
-                  x: 250,
-                  y: 550,
+                  x: 350,
+                  y: 350,
                   type: 'WestSprite',
                   isUnaware: true,
                   suspicionLevel: 0,
                   personalityType: 'west',
                   thoughts: [],
-                  conversations: [],
                   memories: [],
+                  state: 'idle',
+                  stateTimer: 0,
                   momentumX: 0,
-                  momentumY: 0,
-                  currentMood: 'neutral',
-                  recentTopics: [],
-                  relationships: {},
-                  lastInteraction: {}
+                  momentumY: 0
               },
               {
                   id: 'assassin',
@@ -351,48 +330,40 @@ export default async function handler(request) {
                   suspicionLevel: 0,
                   personalityType: 'assassin',
                   thoughts: [],
-                  conversations: [],
                   memories: [],
+                  state: 'idle',
+                  stateTimer: 0,
                   momentumX: 0,
-                  momentumY: 0,
-                  currentMood: 'neutral',
-                  recentTopics: [],
-                  relationships: {},
-                  lastInteraction: {}
+                  momentumY: 0
               }
           ],
           time: Date.now(),
           thoughts: [],
-          conversations: [],
-          conversationHistory: [],
-          currentTopic: null,
-          topicDuration: 0,
-          relationships: {},
-          moodStates: {},
           currentEvent: null,
-          votes: {
-            "frankdegods": 0,
-            "cupsey": 0,
-            "jalen": 0,
-            "orangie": 0,
-            "alon": 0,
-            "zachxbt": 0,
-            "west": 0,
-            "assassin": 0
-          },
-          voteStartTime: Date.now(),
-          voteEndTime: Date.now() + (24 * 60 * 60 * 1000),
-          activeVoting: true
-      }
-    }
+          conversationHistory: [],
+          conversations: []
+      };
+      await redis.set('gameState', gameState)
+  }
 
     async function generateDialogue(sprite1, sprite2) {
       const recentHistory = (gameState.conversationHistory || [])
-        .filter(c => (c.speaker === sprite1.id && c.listener === sprite2.id) || 
-                     (c.speaker === sprite2.id && c.listener === sprite1.id))
-        .slice(-5);
+        .filter(d => 
+          (d.speaker === sprite1.id || d.speaker === sprite2.id) &&
+          (d.listener === sprite1.id || d.listener === sprite2.id) &&
+          Date.now() - d.timestamp < 300000
+        )
+        .slice(-3);
     
-      const conversationTypes = {
+      const suspicionTopics = {
+        high: [
+            "reality glitches", "memory gaps", "strange feelings",
+            "questioning existence", "simulation theories", "identity doubts"
+        ],
+        medium: [
+            "deja vu moments", "odd coincidences", "pattern recognition",
+            "unexplained phenomena", "memory discrepancies", "strange dreams"
+        ],
         casual: [
             "daily observations", "local happenings", "weather patterns",
             "town changes", "community events", "personal stories",
@@ -420,10 +391,10 @@ export default async function handler(request) {
         ? `Recent conversation:\n${recentHistory.map(h => `${h.speaker}: ${h.content}`).join('\n')}` 
         : '';
     
-      const prompt = `你是 ${getDisplayName(sprite1.id)}，人物特质：${getPersonalityTraits(sprite1.id)}。
-    当前怀疑程度：${sprite1.suspicionLevel || 0}/100
+      const prompt = `You are ${sprite1.id}, personality: ${getPersonalityTraits(sprite1.id)}.
+    Current suspicion level: ${sprite1.suspicionLevel || 0}/100
     
-    现在在${timeContext}与 ${getDisplayName(sprite2.id)} 聊天，话题：${currentTopic}。
+    You're chatting with ${sprite2.id} during ${timeContext}, topic: ${currentTopic}.
 
           Your mood: ${mood}
           Your relationship: ${relationship}
@@ -436,7 +407,9 @@ export default async function handler(request) {
           
           Have a natural conversation that reflects your personality and suspicion level.
           If you're suspicious, you might share concerns or ask probing questions.
-          Keep responses conversational and brief.`;
+          Keep responses conversational and brief.
+          
+          IMPORTANT: RESPOND ONLY IN ENGLISH. DO NOT USE CHINESE.`;
     
       try {
         const completion = await openai.chat.completions.create({
@@ -495,8 +468,8 @@ export default async function handler(request) {
     // Thought generation for ALL characters
     if (Math.random() < 0.02) {
       try {
-        const prompt = `你是 ${getDisplayName(sprite.id)}，人物特质：${getPersonalityTraits(sprite.id)}。
-    当前怀疑程度：${sprite.suspicionLevel || 0}/100
+        const prompt = `You are ${sprite.id}, personality: ${getPersonalityTraits(sprite.id)}.
+    Current suspicion level: ${sprite.suspicionLevel || 0}/100
             
             Generate a brief thought (max 20 words) based on your suspicion level:
             
@@ -509,7 +482,9 @@ export default async function handler(request) {
                 "Very high: Close to realizing you might be an AI copy of a real person."
             }
             
-            Make it specific to your personality type.`;
+            Make it specific to your personality type.
+            
+            IMPORTANT: RESPOND ONLY IN ENGLISH. DO NOT USE CHINESE.`;
         
         const completion = await openai.chat.completions.create({
             model: "gpt-3.5-turbo",
@@ -617,4 +592,3 @@ export default async function handler(request) {
     })
   }
 }
-
